@@ -1,4 +1,4 @@
-setwd("/Users/vdykes/Documents/Projects/MenvsWomen")
+setwd("/Users/vdykes/Documents/GitHub/genderimbalances")
 
 #### links
 
@@ -27,10 +27,10 @@ library(rgdal)
 landkreisen <- readOGR(dsn = "/Users/vdykes/Documents/Projects/MenvsWomen/shapefiles", layer = "vg2500_krs")
 plot(landkreisen)
 
-if (!require(gpclib)) install.packages("gpclib", type="source")
-gpclibPermit() 
 library(maptools)
 library(broom)
+if (!require(gpclib)) install.packages("gpclib", type="source")
+gpclibPermit() 
 landkreisen_fortified <- tidy(landkreisen, region = "RS")
 
 saveRDS(landkreisen_fortified, "landkreisen_fortified")

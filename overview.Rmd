@@ -40,7 +40,9 @@ I acquired data on the population breakdown for individual Landkreisen (this is 
 
 The shapefile I acquired from the Bundesamt für Kartographie und Geodäsie and can be downloaded here: http://www.geodatenzentrum.de/geodaten/gdz_rahmen.gdz_div?gdz_spr=deu&gdz_akt_zeile=5&gdz_anz_zeile=1&gdz_unt_zeile=19&gdz_user_id=0 
 
-### Mapping the Disparaties: Overall Population 
+### Mapping the Disparaties ###
+
+#### Overall Population ####
 
 To start out with, I wanted to first get a picture of how gender disparities vary across Germany irrespective of age. The "difference" mapped here is the percentage of men living in a given Landkreis minus the percentage of women living in that same Landkreis. The difference is calculated as the percentage of a population that is male minus the percentage of the population that is female. A more negative number represents a more female-skewing Landkreis, and a more positive number represents a more male-skewing Landkreis.
 
@@ -68,7 +70,7 @@ ggplot(data = landkreisen_fortified_geschlecht,
 As the scale shows (ranging from -5 percent to 2.5 percent), the overall variation in the difference between the male and female populations in a given Landkreis doesn't vary hugely. Rhe most female-skewing Landkreis, Landau in der Pfalz in the state of Rheinland-Pfalz, has a 5 percent difference between the male and female populations. The most male-skewing Landkreis, Dingolfing-Landau in the state of Bavaria, has a 3 percent difference between the male and female populations. All in all, these numbers aren't particularly dramatic. The map generally shows a fair amount of variation across Germany, although overall Germany largely skews slightly female, with approximately 85 percent of all Landkreisen having slightly to somewhat more women than men. 
 
 
-### Mapping the Disparities: Adults aged 18-35
+#### Adults aged 18-35 ####
 
 <!-- https://www.zeit.de/2016/37/landflucht-europa-provinz-vernachlaessigung -->
 <!-- https://www.zeit.de/2017/17/ostdeutschland-abwanderung-frauen-bedrohung -->
@@ -119,9 +121,11 @@ ggplot(data = landkreisen_fortified_age,
 
 ```
 
-The first thing you might notice when you compare the map showing gender ratios for the 18-35 age bracket with the map for Germany's overall population is that this is a much darker map, suggesting there are both stronger and more widespread male-skewing regions in this age bracket. You see this reflected in the averages of the two datasets -- for the overall dataset, the average Landkreis is 49.4 percent male. In the 18-35 dataset, the average Landkreis is 52.5 percent male. 
+The first thing you might notice when you compare the map showing gender ratios for the 18-35 age bracket with the map for Germany's overall population is that this is a much darker map, suggesting there are both stronger and more widespread male-skewing regions in this age bracket. You see this reflected in the averages of the two datasets -- for the overall dataset, the average Landkreis is **49.4 percent male**. In the 18-35 dataset, the average Landkreis is **52.5 percent male**. 
 
-However, I wasn't sure I liked how this map displayed the overall variation across Germany -- I felt like the continuous color scale made it hard to see just how much one Landkreis might differ from another. To address this, I decided to make a new map with a discrete color scale where I could manually set the breaks in the scale. This of course comes with the risk of critique that I'm simply manipulating the data until it shows what I want it to. I personally find it defensible, since I think it helps highlight the more interesting parts of the map without presenting a completely false picture, but I understand if other people don't like this choice. 
+However, I didn't like how this map displayed the overall variation across Germany -- I felt like the continuous color scale made it hard to see just how much or how sharply one Landkreis might differ from another. To address this, I made a second map for the 18-35 age brack, this one with a discrete color scale where I could manually set the breaks in the scale. In this map, each consecutive darker shade represents an increase of 4 percentage points.
+
+The choice to manually code breaks into the scale comes with the risk of critique that I'm simply manipulating the data until it shows what I want it to. I personally find it defensible, since I think it helps highlight the more interesting parts of the map without presenting a completely false picture, but it's understandble if others disagree (and that's why I thought it was also important to first include how the map looks when viewed with a continuous scale).
 
 ```{r, echo=F, message=F, warning=F}
 landkreisen_fortified_age$brks <- cut(landkreisen_fortified_age$difference, 
@@ -146,6 +150,57 @@ ggplot(data = landkreisen_fortified_age,
 
 ```
 
+Here the most extreme cases -- i.e., the most male- and female-skewing Landkreisen -- are easier to discern. In particular, it's easier to see that much of the former East Germany is sharply male-skewing, including multiple Landkreisen with the male population exceeding the female population by 10 pecent or even more. However, this is definitely not a trend that is solely present in East Germany: most of the Landkreisen in Germany have slightly to moderately more men than women, and Southern Germany especially displays several Landkreisen with at least 6 percent more men than women.
+
+Let's look at a few of the more striking cases.
+
+### Diving into specific cases ###
+
+#### Whither women? The cities! ####
+
+You'll notice several small bright spots on the maps above, generally representing areas where there are (slightly) more women than men. They seem small in number and size, but in reality they represent large numbers of people, because these bright spots are usually Germany's largest cities. Here's a table of all of the Landkreisen that have a negative population difference between men and women within the 18-35 age bracket, meaning they have more women than men:
+
+
+```{r, echo=F, message=F, warning=F}
+geschlecht_age_1835_women <- filter(geschlecht_age_1835, difference < 0)
+geschlecht_age_1835_women <- geschlecht_age_1835_women[,c(2,12,13,14,15,16)]
+geschlecht_age_1835_women <- geschlecht_age_1835_women[order(geschlecht_age_1835_women$difference),]
+
+
+library(kableExtra)
+
+kable(geschlecht_age_1835_women, row.names = F) %>% kable_styling() %>% scroll_box(width = "100%", height = "400px")
+```
+
+If you know anything about Germany, you'll notice pretty quickly that there are a lot of familiar names cropping up in this list: cities like **Bonn**, **Düsseldorf**, **Munich**, **Cologne** and **Frankfurt**, AKA some of Germany's largest cities. Many other familiar cities (like **Berlin** or **Nuremberg**) don't show up in this table, but only because they are just barely skewing male. In general, we observe that large cities tend to either have largely balanced male-to-female ratios, or they skew slightly to moderately female. 
+
+#### OK, but... Landau in der Pfalz?? ####
+
+Topping the above table of female-skewing Landkreisen is **Landau in der Pfalz**, a town toward Germany's southwest with 46,000 total inhabitants. Why is such a random-seeming place the most female-skewing Landkreis by far within 18-35 age bracket?
+
+My Technologiestiftung co-worker Ben almost immediately came up with what I think is a sound theory: Laundau is home to a branch of the Unversität Koblenz-Landau. According to Wikipedia, the main study programs there are teaching, pedagogy, psychology, social sciences, and environmental sciences -- AKA a lot of fields that are traditionally studied by more women than men. It would take more in-depth research to know how good a theory this is, but at first blush, I think it makes a lot of sense. 
+
+#### And what about the men? ####
+
+Ah, yes, the eternal question. Here is a table of the male-skewing Landkreisen: 
+
+```{r, echo=F, message=F, warning=F}
+geschlecht_age_1835_men <- filter(geschlecht_age_1835, difference > 0)
+geschlecht_age_1835_men <- geschlecht_age_1835_men[,c(2,12,13,14,15,16)]
+geschlecht_age_1835_men <- geschlecht_age_1835_men[order(-geschlecht_age_1835_men$difference),]
+
+
+library(kableExtra)
+
+kable(geschlecht_age_1835_men, row.names = F) %>% kable_styling() %>% scroll_box(width = "100%", height = "400px")
+```
+
+Some observations about the most male-skewing Landkreisen:
+
+* The leading Landkreis, **Kaiserslautern**, is well-known among Americans for its large American military base. Obviously American service personnel are not included in German population statistics, but I wonder if the base attracts satellite industries related to the military and defense sector that tend to be male-dominated? Additionally, Kaiserslautern is home to a technical university which presumably has more male than female students.
+* The next four leading Landkreisen -- **Ilm**, **Aachen**, **Darmstadt**, and **Karlsruhe** -- are also well-known for their technical universities. Students there will not be the least bit surprised if you tell them they are living in some of the most male-skewing areas in Germany.
+* **Dingolfing-Landau**, a Landkreis in the south of Germany, is not home to a technical university. It is however located in an area home to many auto manufacturers, including a BMW factory located within the Landkreis.
+
 ### Key Questions
 
 1) How does the overall proportion of men and women in a given Landkreis vary across Germany?
@@ -160,3 +215,5 @@ Consider:
 * Population
 * University city?
 * East vs. West
+
+4) Can we observe migrational patterns with time series data?
