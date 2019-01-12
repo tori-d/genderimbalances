@@ -1,0 +1,162 @@
+---
+title: "Project Overview"
+output: html_document
+---
+
+```{r, echo=F, message=F, warning=F}
+
+# initial code
+
+#### sex overall
+
+geschlecht <- read.csv2("geschlecht_cleaned.csv", stringsAsFactors = F, colClasses = "character")
+
+geschlecht$Maennlich <- as.numeric(geschlecht$Maennlich)
+geschlecht$Weiblich <- as.numeric(geschlecht$Weiblich)
+geschlecht$Insgesamt <- as.numeric(geschlecht$Insgesamt)
+
+geschlecht$maennlich_percent <- (geschlecht$Maennlich / geschlecht$Insgesamt) * 100
+geschlecht$weiblich_percent <- (geschlecht$Weiblich / geschlecht$Insgesamt) * 100
+
+geschlecht$difference <- geschlecht$maennlich_percent - geschlecht$weiblich_percent
+
+### load fortified dataset
+
+landkreisen_fortified <- readRDS("landkreisen_fortified")
+
+library(dplyr)
+landkreisen_fortified_geschlecht <- left_join(landkreisen_fortified, geschlecht, by = c("id" = "ID"))
+
+
+```
+
+### Introduction
+
+For this project, I wanted to explore dispararities in the population of men and women across Germany. I have frequently heard about the flight of women from rural communities, especially in the former East, being a contributing factor to depression and economic inertia in these areas, so I was curious if the data would support this story.
+
+### Data Sources
+
+I acquired data on the population breakdown for individual Landkreisen (this is a NUTS-3 designation, similar to the US "county" level) via the German statistics portal, Destatis: https://www.destatis.de/DE/Startseite.html. Unfortunately, their site does not allow me to provide a direct link to the data source, but it can be found via the table code 12411-0016 ("Bevölkerung: Kreise, Stichtag, Geschlecht") and 12411-0018 ("Bevölkerung: Kreise, Stichtag, Geschlecht, Altersgruppen").
+
+The shapefile I acquired from the Bundesamt für Kartographie und Geodäsie and can be downloaded here: http://www.geodatenzentrum.de/geodaten/gdz_rahmen.gdz_div?gdz_spr=deu&gdz_akt_zeile=5&gdz_anz_zeile=1&gdz_unt_zeile=19&gdz_user_id=0 
+
+### Mapping the Disparaties: Overall Population 
+
+To start out with, I wanted to first get a picture of how gender disparities vary across Germany irrespective of age. The "difference" mapped here is the percentage of men living in a given Landkreis minus the percentage of women living in that same Landkreis. The difference is calculated as the percentage of a population that is male minus the percentage of the population that is female. A more negative number represents a more female-skewing Landkreis, and a more positive number represents a more male-skewing Landkreis.
+
+```{r, echo=F, message=F, warning=F}
+library(ggplot2)
+library(viridis)
+ggplot(data = landkreisen_fortified_geschlecht,
+       aes(long, lat, fill = difference, group = group)) +
+  #scale_fill_distiller(type = "div",
+  #                    palette = "RdYlBu",
+  #                   name = "Percentage",
+  #                  direction = -1) +
+  scale_fill_viridis(option = "inferno", trans = "reverse") +
+  coord_fixed() +
+  geom_polygon() +
+  geom_path(colour="grey", lwd = 0.05) +
+  theme(axis.line = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        panel.background = element_blank())
+
+```
+
+As the scale shows (ranging from -5 percent to 2.5 percent), the overall variation in the difference between the male and female populations in a given Landkreis doesn't vary hugely. Rhe most female-skewing Landkreis, Landau in der Pfalz in the state of Rheinland-Pfalz, has a 5 percent difference between the male and female populations. The most male-skewing Landkreis, Dingolfing-Landau in the state of Bavaria, has a 3 percent difference between the male and female populations. All in all, these numbers aren't particularly dramatic. The map generally shows a fair amount of variation across Germany, although overall Germany largely skews slightly female, with approximately 85 percent of all Landkreisen having slightly to somewhat more women than men. 
+
+
+### Mapping the Disparities: Adults aged 18-35
+
+<!-- https://www.zeit.de/2016/37/landflucht-europa-provinz-vernachlaessigung -->
+<!-- https://www.zeit.de/2017/17/ostdeutschland-abwanderung-frauen-bedrohung -->
+<!-- https://www.zdf.de/dokumentation/37-grad/37-sag-mir-wo-die-frauen-sind-100.html-->
+<!-- https://www.zdf.de/dokumentation/37-grad/37-sag-mir-wo-die-frauen-sind-100.html-->
+
+But to me, the most interesting variation to look at is not the overall disparities across Germany. When we break up the data into age groups, we can explore specific trends that are tied to stages of life. I wanted to specifically focus on the 18-35 bracket, because this is an age range where many people are moving to new locations for educational or work opportunities (or both, since Germany has a great apprenticeship system), as well as an age range where many people are seeking out and establishing romantic partnerships. How do these trends vary when looking just as this specific age bracket?
+
+```{r, echo=F, message=F, warning=F}
+geschlecht_age <- read.csv2("geschlecht_alter_cleaned.csv", 
+                            stringsAsFactors = F, colClasses = "character")
+
+geschlecht_age_1835 <- geschlecht_age[,c(1,2,8:11,25:28)]
+
+geschlecht_age_1835[,c(3:10)] <- as.numeric(as.character(unlist(geschlecht_age_1835[,c(3:10)])))
+
+geschlecht_age_1835$gesamt <- rowSums(geschlecht_age_1835[,3:10])
+
+geschlecht_age_1835$maennlich_gesamt <- rowSums(geschlecht_age_1835[,3:6])
+geschlecht_age_1835$weiblich_gesamt <- rowSums(geschlecht_age_1835[,7:10])
+
+geschlecht_age_1835$maennlich_percent <- 
+  (geschlecht_age_1835$maennlich_gesamt / geschlecht_age_1835$gesamt) * 100
+
+geschlecht_age_1835$weiblich_percent <- 
+  (geschlecht_age_1835$weiblich_gesamt / geschlecht_age_1835$gesamt) * 100
+
+geschlecht_age_1835$difference <- 
+  geschlecht_age_1835$maennlich_percent - geschlecht_age_1835$weiblich_percent
+
+landkreisen_fortified_age <- left_join(landkreisen_fortified, geschlecht_age_1835, by = c("id" = "ID"))
+
+ggplot(data = landkreisen_fortified_age,
+       aes(long, lat, fill = difference, group = group)) +
+  # scale_fill_distiller(type = "div",
+  #                      palette = "RdYlBu",
+  #                      name = "Percentage",
+  #                      direction = -1) +
+  scale_fill_viridis(option = "inferno", trans = "reverse") +
+  coord_fixed() +
+  geom_polygon() +
+  geom_path(colour="grey", lwd = 0.05) +
+  theme(axis.line = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        panel.background = element_blank())
+
+```
+
+The first thing you might notice when you compare the map showing gender ratios for the 18-35 age bracket with the map for Germany's overall population is that this is a much darker map, suggesting there are both stronger and more widespread male-skewing regions in this age bracket. You see this reflected in the averages of the two datasets -- for the overall dataset, the average Landkreis is 49.4 percent male. In the 18-35 dataset, the average Landkreis is 52.5 percent male. 
+
+However, I wasn't sure I liked how this map displayed the overall variation across Germany -- I felt like the continuous color scale made it hard to see just how much one Landkreis might differ from another. To address this, I decided to make a new map with a discrete color scale where I could manually set the breaks in the scale. This of course comes with the risk of critique that I'm simply manipulating the data until it shows what I want it to. I personally find it defensible, since I think it helps highlight the more interesting parts of the map without presenting a completely false picture, but I understand if other people don't like this choice. 
+
+```{r, echo=F, message=F, warning=F}
+landkreisen_fortified_age$brks <- cut(landkreisen_fortified_age$difference, 
+                                      breaks = 
+                                        c(-10, -6, -2, 2, 6, 10, 14))
+
+ggplot(data = landkreisen_fortified_age,
+       aes(long, lat, fill = brks, group = group)) +
+  # scale_fill_distiller(type = "div",
+  #                      palette = "RdYlBu",
+  #                      name = "Percentage",
+  #                      direction = -1) +
+  scale_fill_viridis(option = "inferno", direction = -1, discrete = T) +
+  coord_fixed() +
+  geom_polygon() +
+  geom_path(colour="grey", lwd = 0.05) +
+  theme(axis.line = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        panel.background = element_blank())
+
+```
+
+### Key Questions
+
+1) How does the overall proportion of men and women in a given Landkreis vary across Germany?
+
+2) How do these proportions differ when looking only at young adults (i.e., 18 - 35 years old)?
+
+3) What factors are relevant for predicting a larger disparity between men and women?
+
+Consider:
+
+* Urbanness
+* Population
+* University city?
+* East vs. West
