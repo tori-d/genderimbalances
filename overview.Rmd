@@ -32,13 +32,15 @@ landkreisen_fortified_geschlecht <- left_join(landkreisen_fortified, geschlecht,
 
 ### Introduction
 
-For this project, I wanted to explore dispararities in the population of men and women across Germany. I have frequently heard about the flight of women from rural communities, especially in the former East, being a contributing factor to depression and economic inertia in these areas, so I was curious if the data would support this story.
+For this project, I wanted to explore dispararities in the population of men and women across Germany. I have frequently heard about the flight of women from rural communities, especially in the former East, being a contributing factor to depression and economic inertia in these areas, so I was curious if the data would show that there are indeed rurals areas, particularly in the East, where there are significantly more men than women.
+
+Prior to starting this project I hadn't seen any other examples of this data being analyzed in this way, though of course in the process of doing further research for it, I did eventually find other takes on this data (specifically, this web report from the Institut der deutschen Wirtschaft: https://www.iwkoeln.de/studien/iw-kurzberichte/beitrag/wido-geis-anja-katrin-orth-weniger-frauen-gehen-maennerueberschuss-bleibt-bestehen-302444.html). Their map will look differently from mine, because they chose to focus on a somewhat broader age range (20 - 49-year-olds) than I did.
 
 ### Data Sources
 
-I acquired data on the population breakdown for individual Landkreisen (this is a NUTS-3 designation, similar to the US "county" level) via the German statistics portal, Destatis: https://www.destatis.de/DE/Startseite.html. Unfortunately, their site does not allow me to provide a direct link to the data source, but it can be found via the table code 12411-0016 ("Bevölkerung: Kreise, Stichtag, Geschlecht") and 12411-0018 ("Bevölkerung: Kreise, Stichtag, Geschlecht, Altersgruppen").
+My core data is population statistics for individual "Landkreisen" (administrative divisions that are at the NUTS-3 level, similar to the US "county" level) via the German statistics portal, Destatis: https://www.destatis.de/DE/Startseite.html. Unfortunately, their site does not allow me to provide a direct link to the data source, but it can be found via the table code 12411-0016 ("Bevölkerung: Kreise, Stichtag, Geschlecht") and 12411-0018 ("Bevölkerung: Kreise, Stichtag, Geschlecht, Altersgruppen").
 
-The shapefile I acquired from the Bundesamt für Kartographie und Geodäsie and can be downloaded here: http://www.geodatenzentrum.de/geodaten/gdz_rahmen.gdz_div?gdz_spr=deu&gdz_akt_zeile=5&gdz_anz_zeile=1&gdz_unt_zeile=19&gdz_user_id=0 
+The shapefile I acquired from the Bundesamt für Kartographie und Geodäsie. It can be downloaded here: http://www.geodatenzentrum.de/geodaten/gdz_rahmen.gdz_div?gdz_spr=deu&gdz_akt_zeile=5&gdz_anz_zeile=1&gdz_unt_zeile=19&gdz_user_id=0 
 
 ### Mapping the Disparaties ###
 
@@ -67,7 +69,9 @@ ggplot(data = landkreisen_fortified_geschlecht,
 
 ```
 
-As the scale shows (ranging from -5 percent to 2.5 percent), the overall variation in the difference between the male and female populations in a given Landkreis doesn't vary hugely. Rhe most female-skewing Landkreis, Landau in der Pfalz in the state of Rheinland-Pfalz, has a 5 percent difference between the male and female populations. The most male-skewing Landkreis, Dingolfing-Landau in the state of Bavaria, has a 3 percent difference between the male and female populations. All in all, these numbers aren't particularly dramatic. The map generally shows a fair amount of variation across Germany, although overall Germany largely skews slightly female, with approximately 85 percent of all Landkreisen having slightly to somewhat more women than men. 
+As the scale shows (ranging from -5 percent to 2.5 percent), the overall variation in the difference between the male and female populations in a given Landkreis doesn't vary hugely. The most female-skewing Landkreis, Landau in der Pfalz in the state of Rheinland-Pfalz, has a 5 percent difference between the male and female populations. The most male-skewing Landkreis, Dingolfing-Landau in the state of Bavaria, has a 3 percent difference between the male and female populations. 
+
+Interestingly, when looking at all ages, we don't see a clear separation between East and West. Indeed, the darkest part of the map, i.e. the area with the highest concentration of male-skewing Landkreisen, is in southern Bavaria. But all in all, these numbers aren't particularly dramatic, and the map shows that male to female rations vary noticeably across Germany. The numbers do tells us that overall Landkreisen in Germany skew slightly female, with approximately 85 percent of all Landkreisen having slightly to somewhat more women than men. 
 
 
 #### Adults aged 18-35 ####
@@ -77,7 +81,7 @@ As the scale shows (ranging from -5 percent to 2.5 percent), the overall variati
 <!-- https://www.zdf.de/dokumentation/37-grad/37-sag-mir-wo-die-frauen-sind-100.html-->
 <!-- https://www.zdf.de/dokumentation/37-grad/37-sag-mir-wo-die-frauen-sind-100.html-->
 
-But to me, the most interesting variation to look at is not the overall disparities across Germany. When we break up the data into age groups, we can explore specific trends that are tied to stages of life. I wanted to specifically focus on the 18-35 bracket, because this is an age range where many people are moving to new locations for educational or work opportunities (or both, since Germany has a great apprenticeship system), as well as an age range where many people are seeking out and establishing romantic partnerships. How do these trends vary when looking just as this specific age bracket?
+But to me, the most interesting variation to look at is not the disparities across Germany for the population as a whole. When we break up the data into age groups, we can explore specific trends that are tied to stages of life. I wanted to specifically focus on the 18-35 bracket, because this is an age range where many people are moving to new locations for educational or work opportunities (or both, since Germany has a great apprenticeship system), as well as an age range where many people are seeking out and establishing romantic partnerships (and thus an age range where a strong imbalance in the male-female ratio can conceivably lead to social problems). How do these trends vary when looking just as this specific age bracket?
 
 ```{r, echo=F, message=F, warning=F}
 geschlecht_age <- read.csv2("geschlecht_alter_cleaned.csv", 
@@ -103,8 +107,8 @@ geschlecht_age_1835$difference <-
 
 landkreisen_fortified_age <- left_join(landkreisen_fortified, geschlecht_age_1835, by = c("id" = "ID"))
 
-ggplot(data = landkreisen_fortified_age,
-       aes(long, lat, fill = difference, group = group)) +
+map_1835 <- ggplot(data = landkreisen_fortified_age,
+       aes(long, lat, fill = difference, group = group, text = Kreise)) +
   # scale_fill_distiller(type = "div",
   #                      palette = "RdYlBu",
   #                      name = "Percentage",
@@ -119,11 +123,16 @@ ggplot(data = landkreisen_fortified_age,
         axis.title = element_blank(),
         panel.background = element_blank())
 
+library(plotly)
+
+ggplotly(map_1835, tooltip = c("Kreise","difference"))
+
+
 ```
 
-The first thing you might notice when you compare the map showing gender ratios for the 18-35 age bracket with the map for Germany's overall population is that this is a much darker map, suggesting there are both stronger and more widespread male-skewing regions in this age bracket. You see this reflected in the averages of the two datasets -- for the overall dataset, the average Landkreis is **49.4 percent male**. In the 18-35 dataset, the average Landkreis is **52.5 percent male**. 
+The first thing you might notice when you compare the map showing gender ratios for the 18-35 age bracket with the map for Germany's overall population is that this is a much darker map, suggesting there are both stronger and more numerous male-skewing regions in this age bracket. You see this reflected in the averages of the two datasets -- for the overall dataset, the average Landkreis is **49.4 percent male**. In the 18-35 dataset, the average Landkreis is **52.5 percent male**. 
 
-However, I didn't like how this map displayed the overall variation across Germany -- I felt like the continuous color scale made it hard to see just how much or how sharply one Landkreis might differ from another. To address this, I made a second map for the 18-35 age brack, this one with a discrete color scale where I could manually set the breaks in the scale. In this map, each consecutive darker shade represents an increase of 4 percentage points.
+However, I didn't like how this map displayed the overall variation across Germany -- I felt like the continuous color scale made it hard to see just how much or how sharply one Landkreis might differ from another. To address this, I made a second map for the 18-35 age bracket, this one with a discrete color scale where I could manually set the breaks in the scale. In this map, each consecutive darker shade represents an increase of 4 percentage points.
 
 The choice to manually code breaks into the scale comes with the risk of critique that I'm simply manipulating the data until it shows what I want it to. I personally find it defensible, since I think it helps highlight the more interesting parts of the map without presenting a completely false picture, but it's understandble if others disagree (and that's why I thought it was also important to first include how the map looks when viewed with a continuous scale).
 
@@ -193,13 +202,16 @@ geschlecht_age_1835_men <- geschlecht_age_1835_men[order(-geschlecht_age_1835_me
 library(kableExtra)
 
 kable(geschlecht_age_1835_men, row.names = F) %>% kable_styling() %>% scroll_box(width = "100%", height = "400px")
+
+# https://plot.ly/ggplot2/geom_polygon/
+# https://plot.ly/r/choropleth-maps/
 ```
 
 Some observations about the most male-skewing Landkreisen:
 
-* The leading Landkreis, **Kaiserslautern**, is well-known among Americans for its large American military base. Obviously American service personnel are not included in German population statistics, but I wonder if the base attracts satellite industries related to the military and defense sector that tend to be male-dominated? Additionally, Kaiserslautern is home to a technical university which presumably has more male than female students.
-* The next four leading Landkreisen -- **Ilm**, **Aachen**, **Darmstadt**, and **Karlsruhe** -- are also well-known for their technical universities. Students there will not be the least bit surprised if you tell them they are living in some of the most male-skewing areas in Germany.
-* **Dingolfing-Landau**, a Landkreis in the south of Germany, is not home to a technical university. It is however located in an area home to many auto manufacturers, including a BMW factory located within the Landkreis.
+* The leading Landkreis, **Kaiserslautern**, is well-known among Americans for its large American military base. Obviously American service personnel are not included in German population statistics, but I wonder if the base attracts satellite industries related to the military and defense sector that would conceivably be male-dominated? Further, Kaiserslautern is home to a technical university which presumably has more male than female students due to the fields of study it offers.
+* The next four leading Landkreisen -- **Ilm**, **Aachen**, **Darmstadt**, and **Karlsruhe** -- are also well-known for their technical universities. Chance are, students in these cities will not be the least bit surprised if you tell them they are living in some of the most male-skewing areas in Germany: they already know.
+* **Dingolfing-Landau**, a Landkreis in the south of Germany, is not home to a technical university. It is however located in an area home to many auto manufacturers, including a BMW factory located within the Landkreis. I'm no expert on the automobile industry, but I presume it skews male like many other engineering industries?
 
 ### Key Questions
 
