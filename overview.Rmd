@@ -60,19 +60,19 @@ map_allages <- ggplot(data = landkreisen_fortified_geschlecht,
   scale_fill_viridis(option = "inferno", trans = "reverse") +
   coord_fixed() +
   geom_polygon() +
-  geom_path(colour="grey", lwd = 0.05) +
+  #geom_path(lwd = 0.05) +
   theme(axis.line = element_blank(),
         axis.text = element_blank(),
         axis.ticks = element_blank(),
         axis.title = element_blank(),
         panel.background = element_blank(),
-        plot.title = element_text(size = 12)) +
-  labs(title = "<b>Percent Difference between \n Male and Female Populations in Germany</b> \n All ages, by Landkreis")
+        plot.title = element_text(size = 10)) +
+  labs(title = "<b>Percent Difference between \n Male and Female Populations in Germany</b> \n All ages, by Landkreis \n")
 
 library(plotly)
 
 map_allages_ly <- ggplotly(map_allages, tooltip = "text")
-style(map_allages_ly, hoverlabel = list(bgcolor = "white"), hoveron = "fills") # "fills"" ties the hover text to the shape of the Landkreis -- stops it from grabbing data from neighboring Kreisen
+style(map_allages_ly, hoveron = "fills") # "fills"" ties the hover text to the shape of the Landkreis -- stops it from grabbing data from neighboring Kreisen
 
 
 
@@ -125,17 +125,17 @@ map_1835 <- ggplot(data = landkreisen_fortified_age,
   scale_fill_viridis(option = "inferno", trans = "reverse") +
   coord_fixed() +
   geom_polygon() +
-  geom_path(colour="grey", lwd = 0.05) +
+ # geom_path(colour="grey", lwd = 0.05) +
   theme(axis.line = element_blank(),
         axis.text = element_blank(),
         axis.ticks = element_blank(),
         axis.title = element_blank(),
         panel.background = element_blank(),
-        plot.title = element_text(size = 12)) +
-  labs(title = "<b>Percent Difference between \n Male and Female Populations in Germany</b> \n 18-35 year-olds, by Landkreis")
+        plot.title = element_text(size = 10)) +
+  labs(title = "<b>Percent Difference between \n Male and Female Populations in Germany</b> \n 18-35 year-olds, by Landkreis \n")
 
 map_1835_ly <- ggplotly(map_1835, tooltip = "text")
-style(map_1835_ly, hoverlabel = list(bgcolor = "white"), hoveron = "fills") 
+style(map_1835_ly, hoveron = "fills") 
 
 # https://plot.ly/ggplot2/geom_polygon/
 # https://blog.cpsievert.me/2018/01/30/learning-improving-ggplotly-geom-sf/ 
@@ -151,28 +151,36 @@ The choice to manually code breaks into the scale comes with the risk of critiqu
 ```{r, echo=F, message=F, warning=F}
 landkreisen_fortified_age$brks <- cut(landkreisen_fortified_age$difference, 
                                       breaks = 
-                                        c(-10, -6, -2, 2, 6, 10, 14))
+                                        c(-10, -6, -2, 2, 6, 10, 14), 
+                                      labels = c("-10% to -6%",
+                                "-6% to -2%", 
+                                "-2% to 2%",
+                                "2% to 6%",
+                                "6% to 10%",
+                                "10% to 14%"))
 
 map_1835_breaks <- ggplot(data = landkreisen_fortified_age,
        aes(long, lat, fill = brks, group = group, text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference (%):", difference))) +
-  # scale_fill_distiller(type = "div",
-  #                      palette = "RdYlBu",
-  #                      name = "Percentage",
-  #                      direction = -1) +
-  scale_fill_viridis(option = "inferno", direction = -1, discrete = T) +
+  scale_fill_viridis(option = "inferno", 
+                     direction = -1, 
+                     discrete = T) +
   coord_fixed() +
   geom_polygon() +
-  geom_path(colour="grey", lwd = 0.05) +
+ # geom_path(colour="grey", lwd = 0.05) +
   theme(axis.line = element_blank(),
         axis.text = element_blank(),
         axis.ticks = element_blank(),
         axis.title = element_blank(),
+        legend.title = element_blank(),
         panel.background = element_blank())
-
+  
 map_1835_breaks_ly <- ggplotly(map_1835_breaks, tooltip = "text")
-# map_1835_breaks_ly
-style(map_1835_breaks_ly, hoverinfo = "text", hoverlabel = list(bgcolor = "white"), hoveron = "fills") 
+style(map_1835_breaks_ly, hoveron = "fills") 
 # breaks on hoveron = "fills" -- trying to show too much info?
+
+#https://stackoverflow.com/questions/38733403/edit-labels-in-tooltip-for-plotly-maps-using-ggplot2-in-r
+
+# https://stackoverflow.com/questions/38034308/legend-title-in-plotly
 ```
 
 Here the most extreme cases -- i.e., the most male- and female-skewing Landkreisen -- are easier to discern. In particular, it's easier to see that much of the former East Germany is sharply male-skewing, including multiple Landkreisen with the male population exceeding the female population by 10 pecent or even more. However, this is definitely not a trend that is solely present in East Germany: most of the Landkreisen in Germany have slightly to moderately more men than women, and Southern Germany especially displays several Landkreisen with at least 6 percent more men than women.
@@ -226,7 +234,7 @@ kable(geschlecht_age_1835_men, row.names = F) %>% kable_styling() %>% scroll_box
 Some observations about the most male-skewing Landkreisen:
 
 * The leading Landkreis, **Kaiserslautern**, is well-known among Americans for its large American military base. Obviously American service personnel are not included in German population statistics, but I wonder if the base attracts satellite industries related to the military and defense sector that would conceivably be male-dominated? Further, Kaiserslautern is home to a technical university which presumably has more male than female students due to the fields of study it offers.
-* The next four leading Landkreisen -- **Ilm**, **Aachen**, **Darmstadt**, and **Karlsruhe** -- are also well-known for their technical universities. Chance are, students in these cities will not be the least bit surprised if you tell them they are living in some of the most male-skewing areas in Germany: they already know.
+* The next four leading Landkreisen -- **Ilm**, **Aachen**, **Darmstadt**, and **Karlsruhe** -- are also well-known for their technical universities. Chances are, students in these cities will not be the least bit surprised if you tell them they are living in some of the most male-skewing areas in Germany: they already know.
 * **Dingolfing-Landau**, a Landkreis in the south of Germany, is not home to a technical university. It is however located in an area home to many auto manufacturers, including a BMW factory located within the Landkreis. I'm no expert on the automobile industry, but I presume it skews male like many other engineering industries?
 
 ### Key Questions

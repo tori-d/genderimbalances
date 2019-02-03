@@ -107,8 +107,13 @@ landkreisen_fortified_age$brks <- cut(landkreisen_fortified_age$difference,
                                       breaks = 
                                         c(-10, -6, -2, 2, 6, 10, 14))
 
-ggplot(data = landkreisen_fortified_age,
-       aes(long, lat, fill = brks, group = group)) +
+library(plotly)
+
+map_1835_breaks <- ggplot(data = landkreisen_fortified_age,
+       aes(long, lat, 
+           fill = brks, 
+           group = group, 
+           text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference (%):", difference))) +
   # scale_fill_distiller(type = "div",
   #                      palette = "RdYlBu",
   #                      name = "Percentage",
@@ -123,6 +128,9 @@ ggplot(data = landkreisen_fortified_age,
         axis.title = element_blank(),
         panel.background = element_blank())
 
+map_1835_breaks_ly <- ggplotly(map_1835_breaks, tooltip = "text")
+
+
 #### correlation
 
 cor(log(geschlecht_age_1835$gesamt), geschlecht_age_1835$difference, use = "complete.obs")
@@ -131,3 +139,23 @@ ggplot(geschlecht_age_1835,
        aes(x = log(geschlecht_age_1835$gesamt), y = geschlecht_age_1835$difference)) +
   geom_point() +
   geom_smooth(method=lm)
+
+brks_list <- c(-10, -6, -2, 2, 6, 10, 14)
+viridis_colorscale <- viridis_pal(length(brks_list)+1, 
+                          option = "inferno",
+                          direction = -1)
+
+ggplot(data = landkreisen_fortified_age,
+       aes(long, lat, fill = brks, group = group, text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference (%):", difference))) +
+  coord_fixed() +
+  geom_polygon() +
+  # geom_path(colour="grey", lwd = 0.05) +
+  theme(axis.line = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        legend.title = element_blank(),
+        panel.background = element_blank()) +
+  scale_fill_manual(values = viridis_colorscale)
+
+
