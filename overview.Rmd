@@ -15,10 +15,11 @@ geschlecht$Maennlich <- as.numeric(geschlecht$Maennlich)
 geschlecht$Weiblich <- as.numeric(geschlecht$Weiblich)
 geschlecht$Insgesamt <- as.numeric(geschlecht$Insgesamt)
 
-geschlecht$maennlich_percent <- (geschlecht$Maennlich / geschlecht$Insgesamt) * 100
-geschlecht$weiblich_percent <- (geschlecht$Weiblich / geschlecht$Insgesamt) * 100
+geschlecht$male_percent <- (geschlecht$Maennlich / geschlecht$Insgesamt) * 100
+geschlecht$female_percent <- (geschlecht$Weiblich / geschlecht$Insgesamt) * 100
 
-geschlecht$difference <- geschlecht$maennlich_percent - geschlecht$weiblich_percent
+geschlecht$difference <- geschlecht$male_percent - geschlecht$female_percent
+geschlecht$difference_rounded <- round(geschlecht$difference, digits = 3)
 
 ### load fortified dataset
 
@@ -52,7 +53,7 @@ To start out with, I wanted to first get a picture of how gender disparities var
 library(ggplot2)
 library(viridis)
 map_allages <- ggplot(data = landkreisen_fortified_geschlecht,
-       aes(long, lat, fill = difference, group = group, text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference (%):", difference))) +
+       aes(long, lat, fill = difference_rounded, group = group, text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference (%):", difference_rounded))) +
   #scale_fill_distiller(type = "div",
   #                    palette = "RdYlBu",
   #                   name = "Percentage",
@@ -67,7 +68,8 @@ map_allages <- ggplot(data = landkreisen_fortified_geschlecht,
         axis.title = element_blank(),
         panel.background = element_blank(),
         plot.title = element_text(size = 10)) +
-  labs(title = "<b>Percent Difference between \n Male and Female Populations in Germany</b> \n All ages, by Landkreis \n")
+  labs(title = "<b>Percent Difference between \n Male and Female Populations in Germany</b> \n All ages, by Landkreis \n",
+        fill = "Percent difference \n (M minus F)")
 
 library(plotly)
 
@@ -102,22 +104,25 @@ geschlecht_age_1835[,c(3:10)] <- as.numeric(as.character(unlist(geschlecht_age_1
 
 geschlecht_age_1835$gesamt <- rowSums(geschlecht_age_1835[,3:10])
 
-geschlecht_age_1835$maennlich_gesamt <- rowSums(geschlecht_age_1835[,3:6])
-geschlecht_age_1835$weiblich_gesamt <- rowSums(geschlecht_age_1835[,7:10])
+geschlecht_age_1835$male_total <- rowSums(geschlecht_age_1835[,3:6])
+geschlecht_age_1835$female_total <- rowSums(geschlecht_age_1835[,7:10])
 
-geschlecht_age_1835$maennlich_percent <- 
-  (geschlecht_age_1835$maennlich_gesamt / geschlecht_age_1835$gesamt) * 100
+geschlecht_age_1835$male_percent <- 
+  (geschlecht_age_1835$male_total / geschlecht_age_1835$gesamt) * 100
 
-geschlecht_age_1835$weiblich_percent <- 
-  (geschlecht_age_1835$weiblich_gesamt / geschlecht_age_1835$gesamt) * 100
+geschlecht_age_1835$female_percent <- 
+  (geschlecht_age_1835$female_total / geschlecht_age_1835$gesamt) * 100
 
 geschlecht_age_1835$difference <- 
-  geschlecht_age_1835$maennlich_percent - geschlecht_age_1835$weiblich_percent
+  geschlecht_age_1835$male_percent - geschlecht_age_1835$female_percent
+
+geschlecht_age_1835$difference_rounded <- round(geschlecht_age_1835$difference, 
+                                                digits = 3)
 
 landkreisen_fortified_age <- left_join(landkreisen_fortified, geschlecht_age_1835, by = c("id" = "ID"))
 
 map_1835 <- ggplot(data = landkreisen_fortified_age,
-       aes(long, lat, fill = difference, group = group, text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference (%):", difference))) +
+       aes(long, lat, fill = difference_rounded, group = group, text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference (%):", difference_rounded))) +
   # scale_fill_distiller(type = "div",
   #                      palette = "RdYlBu",
   #                      name = "Percentage",
@@ -132,7 +137,8 @@ map_1835 <- ggplot(data = landkreisen_fortified_age,
         axis.title = element_blank(),
         panel.background = element_blank(),
         plot.title = element_text(size = 10)) +
-  labs(title = "<b>Percent Difference between \n Male and Female Populations in Germany</b> \n 18-35 year-olds, by Landkreis \n")
+  labs(title = "<b>Percent Difference between \n Male and Female Populations in Germany</b> \n 18-35 year-olds, by Landkreis \n",
+       fill = "Percent difference \n (M minus F)")
 
 map_1835_ly <- ggplotly(map_1835, tooltip = "text")
 style(map_1835_ly, hoveron = "fills") 
@@ -160,7 +166,7 @@ landkreisen_fortified_age$brks <- cut(landkreisen_fortified_age$difference,
                                 "10% to 14%"))
 
 map_1835_breaks <- ggplot(data = landkreisen_fortified_age,
-       aes(long, lat, fill = brks, group = group, text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference (%):", difference))) +
+       aes(long, lat, fill = brks, group = group, text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference (%):", difference_rounded))) +
   scale_fill_viridis(option = "inferno", 
                      direction = -1, 
                      discrete = T) +
@@ -172,14 +178,25 @@ map_1835_breaks <- ggplot(data = landkreisen_fortified_age,
         axis.ticks = element_blank(),
         axis.title = element_blank(),
         legend.title = element_blank(),
-        panel.background = element_blank())
-  
+        panel.background = element_blank(),
+        plot.title = element_text(size = 10)) + 
+  labs(title = "<b>Percent Difference between \n Male and Female Populations in Germany</b> \n 18-35 year-olds, by Landkreis \n") 
+
+
 map_1835_breaks_ly <- ggplotly(map_1835_breaks, tooltip = "text")
-style(map_1835_breaks_ly, hoveron = "fills") 
-# breaks on hoveron = "fills" -- trying to show too much info?
+map_1835_breaks_ly <- style(map_1835_breaks_ly, hoveron = "fills")
+map_1835_breaks_ly <- add_annotations(map_1835_breaks_ly,
+                                      text="Percent difference \n (M minus F)",
+                                      xref="paper", yref="paper",
+                                      x=1.02, xanchor="left",
+                                      y=.7, yanchor="bottom",
+                                      legendtitle=TRUE, showarrow=FALSE)
+layout(map_1835_breaks_ly, legend = list(
+   orientation ="v",
+   y = .5)
+   )
 
-#https://stackoverflow.com/questions/38733403/edit-labels-in-tooltip-for-plotly-maps-using-ggplot2-in-r
-
+# https://stackoverflow.com/questions/38733403/edit-labels-in-tooltip-for-plotly-maps-using-ggplot2-in-r
 # https://stackoverflow.com/questions/38034308/legend-title-in-plotly
 ```
 
