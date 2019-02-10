@@ -19,7 +19,7 @@ geschlecht$male_percent <- (geschlecht$Maennlich / geschlecht$Insgesamt) * 100
 geschlecht$female_percent <- (geschlecht$Weiblich / geschlecht$Insgesamt) * 100
 
 geschlecht$difference <- geschlecht$male_percent - geschlecht$female_percent
-geschlecht$difference_rounded <- round(geschlecht$difference, digits = 3)
+geschlecht$difference_rounded <- round(geschlecht$difference, digits = 1)
 
 ### load fortified dataset
 
@@ -31,17 +31,23 @@ landkreisen_fortified_geschlecht <- left_join(landkreisen_fortified, geschlecht,
 
 ```
 
+<br><br>
+
 ### Introduction
 
 For this project, I wanted to explore dispararities in the population of men and women across Germany. I have frequently heard about the flight of women from rural communities, especially in the former East, being a contributing factor to depression and economic inertia in these areas, so I was curious if the data would show that there are indeed rurals areas, particularly in the East, where there are significantly more men than women.
 
-Prior to starting this project I hadn't seen any other examples of this data being analyzed in this way, though of course in the process of doing further research for it, I did eventually find other takes on this data (specifically, this web report from the Institut der deutschen Wirtschaft: https://www.iwkoeln.de/studien/iw-kurzberichte/beitrag/wido-geis-anja-katrin-orth-weniger-frauen-gehen-maennerueberschuss-bleibt-bestehen-302444.html). Their map will look differently from mine, because they chose to focus on a somewhat broader age range (20 - 49-year-olds) than I did.
+Prior to starting this project I hadn't seen any other examples of this data being analyzed in this way, though of course in the process of doing further research for it, I did eventually find other takes on this data (specifically, [this web report](https://www.iwkoeln.de/studien/iw-kurzberichte/beitrag/wido-geis-anja-katrin-orth-weniger-frauen-gehen-maennerueberschuss-bleibt-bestehen-302444.html) from the Institut der deutschen Wirtschaft). Their map will look differently from mine, because they focus on a somewhat broader age range (20 - 49-year-olds) than I do.
+
+***
 
 ### Data Sources
 
-My core data is population statistics for individual "Landkreisen" (administrative divisions that are at the NUTS-3 level, similar to the US "county" level) via the German statistics portal, Destatis: https://www.destatis.de/DE/Startseite.html. Unfortunately, their site does not allow me to provide a direct link to the data source, but it can be found via the table code 12411-0016 ("Bevölkerung: Kreise, Stichtag, Geschlecht") and 12411-0018 ("Bevölkerung: Kreise, Stichtag, Geschlecht, Altersgruppen").
+My core data is population statistics for individual "Landkreisen" (administrative divisions that are at the NUTS-3 level, similar to the US "county" level) via the German statistics portal, [Destatis](https://www.destatis.de/DE/Startseite.html). Unfortunately, their site does not allow me to provide a direct link to the data source, but it can be found via the table code 12411-0016 ("Bevölkerung: Kreise, Stichtag, Geschlecht") and 12411-0018 ("Bevölkerung: Kreise, Stichtag, Geschlecht, Altersgruppen").
 
-The shapefile I acquired from the Bundesamt für Kartographie und Geodäsie. It can be downloaded here: http://www.geodatenzentrum.de/geodaten/gdz_rahmen.gdz_div?gdz_spr=deu&gdz_akt_zeile=5&gdz_anz_zeile=1&gdz_unt_zeile=19&gdz_user_id=0 
+The shapefile I acquired from the Bundesamt für Kartographie und Geodäsie. It can be downloaded [here](http://www.geodatenzentrum.de/geodaten/gdz_rahmen.gdz_div?gdz_spr=deu&gdz_akt_zeile=5&gdz_anz_zeile=1&gdz_unt_zeile=19&gdz_user_id=0).
+
+***
 
 ### Mapping the Disparaties ###
 
@@ -53,7 +59,7 @@ To start out with, I wanted to first get a picture of how gender disparities var
 library(ggplot2)
 library(viridis)
 map_allages <- ggplot(data = landkreisen_fortified_geschlecht,
-       aes(long, lat, fill = difference_rounded, group = group, text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference (%):", difference_rounded))) +
+       aes(long, lat, fill = difference_rounded, group = group, text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference: ", difference_rounded, "%", sep = ""))) +
   #scale_fill_distiller(type = "div",
   #                    palette = "RdYlBu",
   #                   name = "Percentage",
@@ -74,6 +80,8 @@ map_allages <- ggplot(data = landkreisen_fortified_geschlecht,
 library(plotly)
 
 map_allages_ly <- ggplotly(map_allages, tooltip = "text")
+map_allages_ly <- config(map_allages_ly, displayModeBar = F, 
+                             scrollZoom = T)
 style(map_allages_ly, hoveron = "fills") # "fills"" ties the hover text to the shape of the Landkreis -- stops it from grabbing data from neighboring Kreisen
 
 
@@ -84,6 +92,7 @@ As the scale shows (ranging from -5 percent to 2.5 percent), the overall variati
 
 Interestingly, when looking at all ages, we don't see a clear separation between East and West. Indeed, the darkest part of the map, i.e. the area with the highest concentration of male-skewing Landkreisen, is in southern Bavaria. But all in all, these numbers aren't particularly dramatic, and the map shows that male to female rations vary noticeably across Germany. The numbers do tells us that overall Landkreisen in Germany skew slightly female, with approximately 85 percent of all Landkreisen having slightly to somewhat more women than men. 
 
+<br>
 
 #### Adults aged 18-35 ####
 
@@ -117,16 +126,12 @@ geschlecht_age_1835$difference <-
   geschlecht_age_1835$male_percent - geschlecht_age_1835$female_percent
 
 geschlecht_age_1835$difference_rounded <- round(geschlecht_age_1835$difference, 
-                                                digits = 3)
+                                                digits = 1)
 
 landkreisen_fortified_age <- left_join(landkreisen_fortified, geschlecht_age_1835, by = c("id" = "ID"))
 
 map_1835 <- ggplot(data = landkreisen_fortified_age,
-       aes(long, lat, fill = difference_rounded, group = group, text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference (%):", difference_rounded))) +
-  # scale_fill_distiller(type = "div",
-  #                      palette = "RdYlBu",
-  #                      name = "Percentage",
-  #                      direction = -1) +
+       aes(long, lat, fill = difference_rounded, group = group, text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference: ", difference_rounded, "%", sep = ""))) +
   scale_fill_viridis(option = "inferno", trans = "reverse") +
   coord_fixed() +
   geom_polygon() +
@@ -141,6 +146,8 @@ map_1835 <- ggplot(data = landkreisen_fortified_age,
        fill = "Percent difference \n (M minus F)")
 
 map_1835_ly <- ggplotly(map_1835, tooltip = "text")
+map_1835_ly <- config(map_1835_ly, displayModeBar = F, 
+                             scrollZoom = T)
 style(map_1835_ly, hoveron = "fills") 
 
 # https://plot.ly/ggplot2/geom_polygon/
@@ -166,7 +173,7 @@ landkreisen_fortified_age$brks <- cut(landkreisen_fortified_age$difference,
                                 "10% to 14%"))
 
 map_1835_breaks <- ggplot(data = landkreisen_fortified_age,
-       aes(long, lat, fill = brks, group = group, text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference (%):", difference_rounded))) +
+       aes(long, lat, fill = brks, group = group, text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference: ", difference_rounded, "%", sep = ""))) +
   scale_fill_viridis(option = "inferno", 
                      direction = -1, 
                      discrete = T) +
@@ -191,6 +198,8 @@ map_1835_breaks_ly <- add_annotations(map_1835_breaks_ly,
                                       x=1.02, xanchor="left",
                                       y=.7, yanchor="bottom",
                                       legendtitle=TRUE, showarrow=FALSE)
+map_1835_breaks_ly <- config(map_1835_breaks_ly, displayModeBar = F, 
+                             scrollZoom = T) # suppress plotly tool bar, but allow for zooming via scrolling
 layout(map_1835_breaks_ly, legend = list(
    orientation ="v",
    y = .5)
@@ -198,17 +207,22 @@ layout(map_1835_breaks_ly, legend = list(
 
 # https://stackoverflow.com/questions/38733403/edit-labels-in-tooltip-for-plotly-maps-using-ggplot2-in-r
 # https://stackoverflow.com/questions/38034308/legend-title-in-plotly
+# https://www.rdocumentation.org/packages/plotly/versions/2.0.16/topics/config
 ```
 
 Here the most extreme cases -- i.e., the most male- and female-skewing Landkreisen -- are easier to discern. In particular, it's easier to see that much of the former East Germany is sharply male-skewing, including multiple Landkreisen with the male population exceeding the female population by 10 pecent or even more. However, this is definitely not a trend that is solely present in East Germany: most of the Landkreisen in Germany have slightly to moderately more men than women, and Southern Germany especially displays several Landkreisen with at least 6 percent more men than women.
 
 Let's look at a few of the more striking cases.
 
+<br>
+
 ### Diving into specific cases ###
 
 #### Whither women? The cities! ####
 
 You'll notice several small bright spots on the maps above, generally representing areas where there are (slightly) more women than men. They seem small in number and size, but in reality they represent large numbers of people, because these bright spots are usually Germany's largest cities. Here's a table of all of the Landkreisen that have a negative population difference between men and women within the 18-35 age bracket, meaning they have more women than men:
+
+<br>
 
 
 ```{r, echo=F, message=F, warning=F}
@@ -222,7 +236,11 @@ library(kableExtra)
 kable(geschlecht_age_1835_women, row.names = F) %>% kable_styling() %>% scroll_box(width = "100%", height = "400px")
 ```
 
+<br>
+
 If you know anything about Germany, you'll notice pretty quickly that there are a lot of familiar names cropping up in this list: cities like **Bonn**, **Düsseldorf**, **Munich**, **Cologne** and **Frankfurt**, AKA some of Germany's largest cities. Many other familiar cities (like **Berlin** or **Nuremberg**) don't show up in this table, but only because they are just barely skewing male. In general, we observe that large cities tend to either have largely balanced male-to-female ratios, or they skew slightly to moderately female. 
+
+<br>
 
 #### OK, but... Landau in der Pfalz?? ####
 
@@ -230,9 +248,13 @@ Topping the above table of female-skewing Landkreisen is **Landau in der Pfalz**
 
 My Technologiestiftung co-worker Ben almost immediately came up with what I think is a sound theory: Laundau is home to a branch of the Unversität Koblenz-Landau. According to Wikipedia, the main study programs there are teaching, pedagogy, psychology, social sciences, and environmental sciences -- AKA a lot of fields that are traditionally studied by more women than men. It would take more in-depth research to know how good a theory this is, but at first blush, I think it makes a lot of sense. 
 
+<br>
+
 #### And what about the men? ####
 
 Ah, yes, the eternal question. Here is a table of the male-skewing Landkreisen: 
+
+<br>
 
 ```{r, echo=F, message=F, warning=F}
 geschlecht_age_1835_men <- filter(geschlecht_age_1835, difference > 0)
@@ -247,6 +269,8 @@ kable(geschlecht_age_1835_men, row.names = F) %>% kable_styling() %>% scroll_box
 # https://plot.ly/ggplot2/geom_polygon/
 # https://plot.ly/r/choropleth-maps/
 ```
+
+<br>
 
 Some observations about the most male-skewing Landkreisen:
 
