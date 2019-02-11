@@ -9,7 +9,7 @@ output: html_document
 
 #### sex overall
 
-geschlecht <- read.csv2("geschlecht_cleaned.csv", stringsAsFactors = F, colClasses = "character")
+geschlecht <- read.csv2("data/geschlecht_cleaned.csv", stringsAsFactors = F, colClasses = "character")
 
 geschlecht$Maennlich <- as.numeric(geschlecht$Maennlich)
 geschlecht$Weiblich <- as.numeric(geschlecht$Weiblich)
@@ -23,7 +23,7 @@ geschlecht$difference_rounded <- round(geschlecht$difference, digits = 1)
 
 ### load fortified dataset
 
-landkreisen_fortified <- readRDS("landkreisen_fortified")
+landkreisen_fortified <- readRDS("r-files/landkreisen_fortified")
 
 library(dplyr)
 landkreisen_fortified_geschlecht <- left_join(landkreisen_fortified, geschlecht, by = c("id" = "ID"))
@@ -113,7 +113,7 @@ But to me, the most interesting variation to look at is not the disparities acro
 
 
 ```{r, echo=F, message=F, warning=F}
-geschlecht_age <- read.csv2("geschlecht_alter_cleaned.csv", 
+geschlecht_age <- read.csv2("data/geschlecht_alter_cleaned.csv", 
                             stringsAsFactors = F, colClasses = "character")
 
 geschlecht_age_1835 <- geschlecht_age[,c(1,2,8:11,25:28)]
