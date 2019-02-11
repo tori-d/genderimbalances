@@ -55,6 +55,10 @@ The shapefile I acquired from the Bundesamt für Kartographie und Geodäsie. It 
 
 To start out with, I wanted to first get a picture of how gender disparities vary across Germany irrespective of age. The "difference" mapped here is the percentage of men living in a given Landkreis minus the percentage of women living in that same Landkreis. The difference is calculated as the percentage of a population that is male minus the percentage of the population that is female. A more negative number represents a more female-skewing Landkreis, and a more positive number represents a more male-skewing Landkreis.
 
+<br>
+
+*To zoom into this map, scroll with your mouse or trackpad. To bring the map back to its original size, double click within the plot*
+
 ```{r, echo=F, message=F, warning=F}
 library(ggplot2)
 library(viridis)
@@ -102,6 +106,11 @@ Interestingly, when looking at all ages, we don't see a clear separation between
 <!-- https://www.zdf.de/dokumentation/37-grad/37-sag-mir-wo-die-frauen-sind-100.html-->
 
 But to me, the most interesting variation to look at is not the disparities across Germany for the population as a whole. When we break up the data into age groups, we can explore specific trends that are tied to stages of life. I wanted to specifically focus on the 18-35 bracket, because this is an age range where many people are moving to new locations for educational or work opportunities (or both, since Germany has a great apprenticeship system), as well as an age range where many people are seeking out and establishing romantic partnerships (and thus an age range where a strong imbalance in the male-female ratio can conceivably lead to social problems). How do these trends vary when looking just as this specific age bracket?
+
+<br>
+
+*To zoom into this map, scroll with your mouse or trackpad. To bring the map back to its original size, double click within the plot*
+
 
 ```{r, echo=F, message=F, warning=F}
 geschlecht_age <- read.csv2("geschlecht_alter_cleaned.csv", 
@@ -160,6 +169,10 @@ The first thing you might notice when you compare the map showing gender ratios 
 However, I didn't like how this map displayed the overall variation across Germany -- I felt like the continuous color scale made it hard to see just how much or how sharply one Landkreis might differ from another. To address this, I made a second map for the 18-35 age bracket, this one with a discrete color scale where I could manually set the breaks in the scale. In this map, each consecutive darker shade represents an increase of 4 percentage points.
 
 The choice to manually code breaks into the scale comes with the risk of critique that I'm simply manipulating the data until it shows what I want it to. I personally find it defensible, since I think it helps highlight the more interesting parts of the map without presenting a completely false picture, but it's understandble if others disagree (and that's why I thought it was also important to first include how the map looks when viewed with a continuous scale).
+
+<br>
+*To zoom into this map, scroll with your mouse or trackpad. To bring the map back to its original size, double click within the plot*
+
 
 ```{r, echo=F, message=F, warning=F}
 landkreisen_fortified_age$brks <- cut(landkreisen_fortified_age$difference, 
@@ -277,20 +290,16 @@ Some observations about the most male-skewing Landkreisen:
 * The leading Landkreis, **Kaiserslautern**, is well-known among Americans for its large American military base. Obviously American service personnel are not included in German population statistics, but I wonder if the base attracts satellite industries related to the military and defense sector that would conceivably be male-dominated? Further, Kaiserslautern is home to a technical university which presumably has more male than female students due to the fields of study it offers.
 * The next four leading Landkreisen -- **Ilm**, **Aachen**, **Darmstadt**, and **Karlsruhe** -- are also well-known for their technical universities. Chances are, students in these cities will not be the least bit surprised if you tell them they are living in some of the most male-skewing areas in Germany: they already know.
 * **Dingolfing-Landau**, a Landkreis in the south of Germany, is not home to a technical university. It is however located in an area home to many auto manufacturers, including a BMW factory located within the Landkreis. I'm no expert on the automobile industry, but I presume it skews male like many other engineering industries?
+* Of the 17 Landkreise with at least 10% more men than women, 7 are located in east Germany.
 
-### Key Questions
+***
 
-1) How does the overall proportion of men and women in a given Landkreis vary across Germany?
+### Ways to further explore this data
 
-2) How do these proportions differ when looking only at young adults (i.e., 18 - 35 years old)?
+The analysis here is fairly superficial -- to start out with, I just wanted to try visualizing this data and to see what kinds if insights you can draw just from plotting this data on a map. Here are some ideas I have for how to explore this data further:
 
-3) What factors are relevant for predicting a larger disparity between men and women?
+* It could be interesting to come up with some covariates and to do some sort of regression to have a better picture of what are determining factors for whether a given Landkreis skews male or female. Whether or not a given Landkreis is located in east or west Germany is an obvious option, but presumably the actual predictors for skewed populations are more nuanced than that (such as the presence of a university).
 
-Consider:
+* This data is also available as a time series. It would be interesting to observe how gender disparities have developed in the last 20 years and if trends can be recognized (for example, women steadily leaving rural areas and moving to urban areas). Assuming that young people in general are leaving rural areas, it could also be interesting to observe how the average age in Landkreisen in Germany has changed over time. 
 
-* Urbanness
-* Population
-* University city?
-* East vs. West
-
-4) Can we observe migrational patterns with time series data?
+* I could repeat this analysis for different age groups to see how the disparities across Germany fluctuate based on age -- presumably for the older age bracket, for example, we'd see a lot more female-skewing Landkreisen, simply because women tend to live longer. 
