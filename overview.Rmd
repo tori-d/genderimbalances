@@ -1,5 +1,5 @@
 ---
-title: "Project Overview"
+title: "Exploring gender imbalances across Germany"
 
 knit: (function(input_file, encoding) {
   out_dir <- 'docs';
@@ -11,7 +11,7 @@ knit: (function(input_file, encoding) {
 output: html_document
 ---
 
-```{r, echo=F, message=F, warning=F}
+```{r, echo=F, message=F, warning=F, fig.align='center'}
 
 # initial code
 
@@ -36,16 +36,35 @@ landkreisen_fortified <- readRDS("r-files/landkreisen_fortified")
 library(dplyr)
 landkreisen_fortified_geschlecht <- left_join(landkreisen_fortified, geschlecht, by = c("id" = "ID"))
 
+library(ggplot2)
+library(viridis)
+ggplot(data = landkreisen_fortified_geschlecht,
+       aes(long, lat, fill = difference_rounded, group = group, text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference: ", difference_rounded, "%", sep = ""))) +
+  #scale_fill_distiller(type = "div",
+  #                    palette = "RdYlBu",
+  #                   name = "Percentage",
+  #                  direction = -1) +
+  scale_fill_viridis(option = "inferno", trans = "reverse") +
+  coord_fixed() +
+  geom_polygon() +
+  #geom_path(lwd = 0.05) +
+  theme(axis.line = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        panel.background = element_blank(),
+        legend.position = "none")
+
 
 ```
 
-<br><br>
+*For mobile users: This site is not going to work particularly well on your phone -- I highly recommend viewing it on a computer, if possible. Sorry!*
 
 ### Introduction
 
-For this project, I wanted to explore dispararities in the population of men and women across Germany. I have frequently heard about the flight of women from rural communities, especially in the former East, being a contributing factor to depression and economic inertia in these areas, so I was curious if the data would show that there are indeed rurals areas, particularly in the East, where there are significantly more men than women.
+For this project, I wanted to explore dispararities in the population of men and women across Germany. I have frequently heard about the flight of women from rural communities, especially in the former East, being a contributing factor to depression, economic inertia as well as social upheaval (e.g., the rise of far-right parties) in these areas. Accordingly, I was curious if the data would show that there are indeed rurals areas, particularly in the East, where there are significantly more men than women.
 
-Prior to starting this project I hadn't seen any other examples of this data being analyzed in this way, though of course in the process of doing further research for it, I did eventually find other takes on this data (specifically, [this web report](https://www.iwkoeln.de/studien/iw-kurzberichte/beitrag/wido-geis-anja-katrin-orth-weniger-frauen-gehen-maennerueberschuss-bleibt-bestehen-302444.html) from the Institut der deutschen Wirtschaft). Their map will look differently from mine, because they focus on a somewhat broader age range (20 - 49-year-olds) than I do.
+Prior to starting this project I hadn't seen any other examples of this data being analyzed in this way, though of course in the process of doing further research for it, I did eventually find other takes on this data (specifically, [this web report](https://www.iwkoeln.de/studien/iw-kurzberichte/beitrag/wido-geis-anja-katrin-orth-weniger-frauen-gehen-maennerueberschuss-bleibt-bestehen-302444.html) from the Institut der deutschen Wirtschaft). Their map will look different from mine, because they focus on a somewhat broader age range (20 - 49-year-olds) than I do.
 
 ***
 
@@ -53,7 +72,7 @@ Prior to starting this project I hadn't seen any other examples of this data bei
 
 My core data is population statistics for individual "Landkreisen" (administrative divisions that are at the NUTS-3 level, similar to the US "county" level) via the German statistics portal, [Destatis](https://www.destatis.de/DE/Startseite.html). Unfortunately, their site does not allow me to provide a direct link to the data source, but it can be found via the table code 12411-0016 ("Bevölkerung: Kreise, Stichtag, Geschlecht") and 12411-0018 ("Bevölkerung: Kreise, Stichtag, Geschlecht, Altersgruppen").
 
-The shapefile I acquired from the Bundesamt für Kartographie und Geodäsie. It can be downloaded [here](http://www.geodatenzentrum.de/geodaten/gdz_rahmen.gdz_div?gdz_spr=deu&gdz_akt_zeile=5&gdz_anz_zeile=1&gdz_unt_zeile=19&gdz_user_id=0).
+The shapefile containing the Landkreise I acquired from the Bundesamt für Kartographie und Geodäsie. It can be downloaded [here](http://www.geodatenzentrum.de/geodaten/gdz_rahmen.gdz_div?gdz_spr=deu&gdz_akt_zeile=5&gdz_anz_zeile=1&gdz_unt_zeile=19&gdz_user_id=0).
 
 ***
 
@@ -68,8 +87,6 @@ To start out with, I wanted to first get a picture of how gender disparities var
 *To zoom into this map, scroll with your mouse or trackpad. To bring the map back to its original size, double click within the plot*
 
 ```{r, echo=F, message=F, warning=F}
-library(ggplot2)
-library(viridis)
 map_allages <- ggplot(data = landkreisen_fortified_geschlecht,
        aes(long, lat, fill = difference_rounded, group = group, text = paste("<b>", Kreise, "</b>", "<br>","M-F Difference: ", difference_rounded, "%", sep = ""))) +
   #scale_fill_distiller(type = "div",
@@ -111,9 +128,8 @@ Interestingly, when looking at all ages, we don't see a clear separation between
 <!-- https://www.zeit.de/2016/37/landflucht-europa-provinz-vernachlaessigung -->
 <!-- https://www.zeit.de/2017/17/ostdeutschland-abwanderung-frauen-bedrohung -->
 <!-- https://www.zdf.de/dokumentation/37-grad/37-sag-mir-wo-die-frauen-sind-100.html-->
-<!-- https://www.zdf.de/dokumentation/37-grad/37-sag-mir-wo-die-frauen-sind-100.html-->
 
-But to me, the most interesting variation to look at is not the disparities across Germany for the population as a whole. When we break up the data into age groups, we can explore specific trends that are tied to stages of life. I wanted to specifically focus on the 18-35 bracket, because this is an age range where many people are moving to new locations for educational or work opportunities (or both, since Germany has a great apprenticeship system), as well as an age range where many people are seeking out and establishing romantic partnerships (and thus an age range where a strong imbalance in the male-female ratio can conceivably lead to social problems). How do these trends vary when looking just as this specific age bracket?
+But to me, the most interesting variation to look at is not the disparities across Germany for the population as a whole. When we break up the data into age groups, we can explore specific trends that are tied to stages of life. I wanted to specifically focus on the 18-35 bracket, because this is an age range where many people are moving to new locations for educational or work opportunities (or both, since Germany has a great apprenticeship system), as well as an age range where many people are seeking out and establishing romantic partnerships (and thus an age range where a strong imbalance in the male-female ratio is more likely to be noticeable and potentially even to lead to social problems). How do these trends vary when looking just as this specific age bracket?
 
 <br>
 
@@ -172,9 +188,11 @@ style(map_1835_ly, hoveron = "fills")
 
 ```
 
-The first thing you might notice when you compare the map showing gender ratios for the 18-35 age bracket with the map for Germany's overall population is that this is a much darker map, suggesting there are both stronger and more numerous male-skewing regions in this age bracket. You see this reflected in the averages of the two datasets -- for the overall dataset, the average Landkreis is **49.4 percent male**. In the 18-35 dataset, the average Landkreis is **52.5 percent male**. 
+The first thing you might notice when you compare the map showing gender ratios for the 18-35 age bracket with the map for Germany's overall population is that this is a much darker map. To be fair, the scales are not comparable (since the previous map applied the same color scale to a much narrower range of percentages), but regardless, at first glance it seems pretty clear that a *lot* of Landkreise skew male in their populations. 
 
-However, I didn't like how this map displayed the overall variation across Germany -- I felt like the continuous color scale made it hard to see just how much or how sharply one Landkreis might differ from another. To address this, I made a second map for the 18-35 age bracket, this one with a discrete color scale where I could manually set the breaks in the scale. In this map, each consecutive darker shade represents an increase of 4 percentage points.
+You see this reflected in the averages of the two datasets -- for the overall dataset, the average Landkreis is **49.4 percent male**. In the 18-35 dataset, the average Landkreis is **52.5 percent male**. 
+
+However, I didn't like how this map displayed the overall variation across Germany -- I felt like the continuous color scale made it hard to see just how much or how sharply one Landkreis might differ from another, and it also made the most extreme examples harder to discern. To address this, I made a second map for the 18-35 age bracket, this one with a discrete color scale where I could manually set the breaks in the scale. In this map, each consecutive darker shade represents an increase of 4 percentage points.
 
 The choice to manually code breaks into the scale comes with the risk of critique that I'm simply manipulating the data until it shows what I want it to. I personally find it defensible, since I think it helps highlight the more interesting parts of the map without presenting a completely false picture, but it's understandble if others disagree (and that's why I thought it was also important to first include how the map looks when viewed with a continuous scale).
 
@@ -311,3 +329,26 @@ The analysis here is fairly superficial -- to start out with, I just wanted to t
 * This data is also available as a time series. It would be interesting to observe how gender disparities have developed in the last 20 years and if trends can be recognized (for example, women steadily leaving rural areas and moving to urban areas). Assuming that young people in general are leaving rural areas, it could also be interesting to observe how the average age in Landkreisen in Germany has changed over time. 
 
 * I could repeat this analysis for different age groups to see how the disparities across Germany fluctuate based on age -- presumably for the older age bracket, for example, we'd see a lot more female-skewing Landkreisen, simply because women tend to live longer. 
+
+***
+
+### Links for further reading / viewing: 
+
+* [Rettet die Provinz!](https://www.zeit.de/2016/37/landflucht-europa-provinz-vernachlaessigung) - Die Zeit, 3 September 2016
+
+* [Wer kommt? Wer geht? Wer bleibt?](https://media.lk-goerlitz.active-city.net/downloads/planung/Wer_kommt_wer_bleibt_wer_geht.pdf) - Study from TRAWOS-Institut, Hochschule Zittau/Görlitz, December 2016
+
+* [ Weniger Frauen gehen, Männerüberschuss bleibt bestehen](https://www.iwkoeln.de/studien/iw-kurzberichte/beitrag/wido-geis-anja-katrin-orth-weniger-frauen-gehen-maennerueberschuss-bleibt-bestehen-302444.html) - Institut der deutschen Wirtschaft, 6 January 2017
+
+
+* [Provinz voller Männer](https://www.zeit.de/2017/17/ostdeutschland-abwanderung-frauen-bedrohung) - Die Zeit, 24 April 2017
+
+* [Sag mir, wo die Frauen sind](https://www.zdf.de/dokumentation/37-grad/37-sag-mir-wo-die-frauen-sind-100.html) - ZDF Documentary, 20 August 2018
+
+***
+
+*Thanks for reading! If you have thoughts or feedback, or are just curious who I am, I'm always eays to reach on [Twitter](https://twitter.com/toridykes).*
+
+*It's probably worth noting that this is really just a hobby project for me. I know I am not a power user of R (nor a professional data analyst) and there are presumably lots of places where my code can be cleaned up and improved, and where a savvier data analyst would inject more salient analysis. This is simply an idea I had that I wanted to explore, and which gave me an excuse to refresh (and expand my R skills).*
+
+<br><br>
