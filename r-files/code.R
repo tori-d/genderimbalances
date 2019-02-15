@@ -83,21 +83,31 @@ geschlecht_age_1835$difference <-
 
 landkreisen_fortified_age <- left_join(landkreisen_fortified, geschlecht_age_1835, by = c("id" = "ID"))
 
-ggplot(data = landkreisen_fortified_age,
+# number of male-skewing landkreisen
+
+length(which(geschlecht_age_1835$difference > 0)) / length(geschlecht_age_1835$Kreise)
+
+# ages map
+
+ages <- ggplot(data = landkreisen_fortified_age,
        aes(long, lat, fill = difference, group = group)) +
-  scale_fill_distiller(type = "div",
-                       palette = "RdYlBu",
-                       name = "Percentage",
-                       direction = -1) +
-  #scale_fill_viridis(option = "inferno", direction = -1) +
+  scale_fill_viridis(option = "inferno", trans = "reverse") +
   coord_fixed() +
   geom_polygon() +
-  geom_path(colour="grey", lwd = 0.05) +
+  # geom_path(colour="grey", lwd = 0.05) +
   theme(axis.line = element_blank(),
         axis.text = element_blank(),
         axis.ticks = element_blank(),
         axis.title = element_blank(),
-        panel.background = element_blank())
+        panel.background = element_blank(),
+        plot.title = element_text(size = 20, face ="bold"),
+        plot.caption = element_text(hjust = 0)) +
+  labs(title = "Gender ratios across Germany",
+       subtitle = "Difference between percentage of male and female 18-35 year-olds living in a given Landkreis",
+       fill = "Percent difference \n (M minus F)",
+       caption = "Data source: Statistisches Bundesamt (Destatis), Genesis-Online; Shapefile via GeoBasis-DE / BKG 2018")
+
+ggsave("socialmedia_map.png", ages, width = 8, height = 6)
 
 ### with breaks
 
